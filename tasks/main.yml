@@ -3,3 +3,6 @@
 - copy: src=mit-security.conf dest=/etc/nginx/conf.d/mit-security.conf
   notify: Restart nginx  
 
+- name: Create 0-19020-use-conf.d-instead-of-sites-enabled hint
+  copy: dest=/etc/nginx/sites-enabled/0-19020-use-conf.d-instead-of-sites-enabled content="" force=no
+
