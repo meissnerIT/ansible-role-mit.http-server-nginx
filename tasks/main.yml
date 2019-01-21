@@ -6,3 +6,33 @@
 - name: Create 0-19020-use-conf.d-instead-of-sites-enabled hint
   copy: dest=/etc/nginx/sites-enabled/0-19020-use-conf.d-instead-of-sites-enabled content="" force=no
 
+- name: Check logrotate rules
+  shell: if ls /srv/www/*/logs/*.log >/dev/null; then grep "/srv/www/\*/logs/\*.log" /etc/logrotate.d/*; fi
+  changed_when: no
+
+- name: Check logrotate rules
+  shell: if ls /srv/www/*/*/logs/*.log >/dev/null; then grep "/srv/www/\*/\*/logs/\*.log" /etc/logrotate.d/*; fi
+  changed_when: no
+
+- name: Ensure log files are world readable (1/2)
+  lineinfile:
+    dest: /etc/logrotate.d/nginx
+    regexp: "create 064"
+    line: "\tcreate 0644 www-data adm"
+
+- name: Ensure log files are world readable (2/2)
+  lineinfile: 
+    dest: /etc/logrotate.d/nginx
+    line: "\t# Ansible role mit.http-server-nginx: Let all log files be world readable"
+    insertbefore: "create 0644 www-data adm"
+    state: present
+
+- name: Copy update-facls
+  copy: src=update-facls dest=/usr/local/sbin/ mode=0755
+
+- name: Activate update-facls in cron.daily (link)
+  file:
+    src:  ../../usr/local/sbin/update-facls
+    dest: /etc/cron.daily/local-update-facls
+    state: link
+
