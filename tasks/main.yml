@@ -32,12 +32,5 @@
     insertbefore: "create 0644 www-data adm"
     state: present
 
-- name: Copy update-facls
-  copy: src=update-facls dest=/usr/local/sbin/ mode=0755
-
-- name: Activate update-facls in cron.daily (link)
-  file:
-    src:  ../../usr/local/sbin/update-facls
-    dest: /etc/cron.daily/local-update-facls
-    state: link
+# update-facls moved to mit.webserver.php
 
