@@ -15,10 +15,6 @@
   shell: if ls /srv/www/*/logs/*.log >/dev/null; then grep "/srv/www/\*/logs/\*.log" /etc/logrotate.d/*; fi
   changed_when: no
 
-- name: Check logrotate rules
-  shell: if ls /srv/www/*/*/logs/*.log >/dev/null; then grep "/srv/www/\*/\*/logs/\*.log" /etc/logrotate.d/*; fi
-  changed_when: no
-
 - name: Ensure log files are world readable (1/2)
   lineinfile:
     dest: /etc/logrotate.d/nginx
