@@ -1,15 +1,16 @@
 ---
 
 - name: Copy local-mit-security.conf
-  copy: src=local-mit-security.conf dest=/etc/nginx/conf.d/
+  copy:
+    src: local-mit-security.conf
+    dest: "{{ etc_prefix }}/etc/nginx/conf.d/"
   notify: Reload nginx  
 
-- name: Remove deprecated mit-security.conf
-  file: path=/etc/nginx/conf.d/mit-security.conf state=absent
-  notify: Reload nginx
-
 - name: Create 0-19020-use-conf.d-instead-of-sites-enabled hint
-  copy: dest=/etc/nginx/sites-enabled/0-19020-use-conf.d-instead-of-sites-enabled content="" force=no
+  copy:
+    dest: "{{ etc_prefix }}/etc/nginx/sites-enabled/0-19020-use-conf.d-instead-of-sites-enabled"
+    content: ""
+    force: no
 
 - name: Check logrotate rules
   shell: if ls /srv/www/*/logs/*.log >/dev/null; then grep "/srv/www/\*/logs/\*.log" /etc/logrotate.d/*; fi
