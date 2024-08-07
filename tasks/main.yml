@@ -11,16 +11,24 @@
     dest: "{{ etc_prefix }}/etc/nginx/sites-enabled/0-19020-use-conf.d-instead-of-sites-enabled"
     content: ""
     force: no
+  when: ansible_distribution == "Debian"
+
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+  when: ansible_facts.packages is not defined
 
 - name: Check logrotate rules
   shell: if ls /srv/www/*/logs/*.log >/dev/null; then grep "/srv/www/\*/logs/\*.log" /etc/logrotate.d/*; fi
   changed_when: no
+  when: "'logrotate' in ansible_facts.packages"
 
 - name: Ensure log files are world readable (1/2)
   lineinfile:
     dest: /etc/logrotate.d/nginx
     regexp: "create 064"
     line: "\tcreate 0644 www-data adm"
+  when: "'logrotate' in ansible_facts.packages"
 
 - name: Ensure log files are world readable (2/2)
   lineinfile: 
@@ -28,6 +36,7 @@
     line: "\t# Ansible role mit.http-server-nginx: Let all log files be world readable"
     insertbefore: "create 0644 www-data adm"
     state: present
+  when: "'logrotate' in ansible_facts.packages"
 
 # update-facls moved to mit.webserver.php
 
