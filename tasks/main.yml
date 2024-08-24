@@ -1,5 +1,13 @@
 ---
 
+- name: Ensure include conf.d/*.conf
+  ansible.builtin.lineinfile:
+    path: "{{ etc_prefix }}/etc/nginx/nginx.conf"
+    search_string: "include {{ etc_prefix }}/etc/nginx/conf.d/*.conf;" 
+    insertbefore: '^}$'
+    line: "    include {{ etc_prefix }}/etc/nginx/conf.d/*.conf;"
+  when: ansible_os_family == "FreeBSD"
+
 - name: Copy local-mit-security.conf
   copy:
     src: local-mit-security.conf
