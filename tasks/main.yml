@@ -1,24 +1,25 @@
 ---
-
 - name: Ensure include conf.d/*.conf
   ansible.builtin.lineinfile:
     path: "{{ etc_prefix }}/etc/nginx/nginx.conf"
-    search_string: "include {{ etc_prefix }}/etc/nginx/conf.d/*.conf;" 
-    insertbefore: '^}$'
+    search_string: "include {{ etc_prefix }}/etc/nginx/conf.d/*.conf;"
+    insertbefore: "^}$"
     line: "    include {{ etc_prefix }}/etc/nginx/conf.d/*.conf;"
   when: ansible_os_family == "FreeBSD"
 
 - name: Copy local-mit-security.conf
-  copy:
+  ansible.builtin.copy:
     src: local-mit-security.conf
     dest: "{{ etc_prefix }}/etc/nginx/conf.d/"
-  notify: Reload nginx  
+    mode: "644"
+  notify: Reload nginx
 
 - name: Create 0-19020-use-conf.d-instead-of-sites-enabled hint
-  copy:
+  ansible.builtin.copy:
     dest: "{{ etc_prefix }}/etc/nginx/sites-enabled/0-19020-use-conf.d-instead-of-sites-enabled"
     content: ""
-    force: no
+    force: false
+    mode: "644"
   when: ansible_distribution == "Debian"
 
 - name: Gather the package facts
@@ -27,24 +28,34 @@
   when: ansible_facts.packages is not defined
 
 - name: Check logrotate rules
-  shell: if ls /srv/www/*/logs/*.log >/dev/null; then grep "/srv/www/\*/logs/\*.log" /etc/logrotate.d/*; fi
-  changed_when: no
+  ansible.builtin.shell: if ls /srv/www/*/logs/*.log >/dev/null; then grep "/srv/www/\*/logs/\*.log" /etc/logrotate.d/*; fi
+  changed_when: false
   when: "'logrotate' in ansible_facts.packages"
 
 - name: Ensure log files are world readable (1/2)
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/logrotate.d/nginx
     regexp: "create 064"
     line: "\tcreate 0644 www-data adm"
   when: "'logrotate' in ansible_facts.packages"
 
 - name: Ensure log files are world readable (2/2)
-  lineinfile: 
+  ansible.builtin.lineinfile:
     dest: /etc/logrotate.d/nginx
     line: "\t# Ansible role mit.http-server-nginx: Let all log files be world readable"
     insertbefore: "create 0644 www-data adm"
     state: present
   when: "'logrotate' in ansible_facts.packages"
 
+- name: "Copy logcheck rules"
+  ansible.builtin.copy:
+    src: "{{ copy_file }}"
+    dest: /etc/logcheck/ignore.d.server/mit-nginx
+    mode: "644"
+  vars:
+    copy_file: "{{ lookup('ansible.builtin.first_found', files, errors='ignore') }}"
+    files:
+      # logcheck-mit-nginx-Debian-12
+      - logcheck-mit-nginx-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}
+  when: "'logcheck' in ansible_facts.packages and copy_file != ''"
 # update-facls moved to mit.webserver.php
-
