@@ -53,4 +53,16 @@
     insertbefore: "create 0644 www-data adm"
     state: present
   when: "'logrotate' in ansible_facts.packages"
+
+- name: "Copy logcheck rules"
+  ansible.builtin.copy:
+    src: "{{ copy_file }}"
+    dest: /etc/logcheck/ignore.d.server/mit-nginx
+    mode: "644"
+  vars:
+    copy_file: "{{ lookup('ansible.builtin.first_found', files, errors='ignore') }}"
+    files:
+      # logcheck-mit-nginx-Debian-12
+      - logcheck-mit-nginx-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}
+  when: "'logcheck' in ansible_facts.packages and copy_file != ''"
 # update-facls moved to mit.webserver.php
