@@ -5,7 +5,16 @@
     search_string: "include {{ etc_prefix }}/etc/nginx/conf.d/*.conf;"
     insertbefore: "^}$"
     line: "    include {{ etc_prefix }}/etc/nginx/conf.d/*.conf;"
+  notify: Reload nginx
   when: ansible_os_family == "FreeBSD"
+
+- name: Set worker_connections
+  ansible.builtin.lineinfile:
+    path: "{{ etc_prefix }}/etc/nginx/nginx.conf"
+    search_string: "worker_connections "
+    line: "\tworker_connections {{ nginx_worker_connections }};"
+  notify: Reload nginx
+  when: nginx_worker_connections is defined
 
 - name: Copy local-mit-security.conf
   ansible.builtin.copy:
